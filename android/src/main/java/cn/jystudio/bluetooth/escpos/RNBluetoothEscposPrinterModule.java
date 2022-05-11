@@ -297,7 +297,8 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
         for(int i=0;i<rowsToPrint.length;i++){
             rowsToPrint[i].append("\n\r");//wrap line..
             try {
- 
+//                byte[] toPrint = rowsToPrint[i].toString().getBytes("UTF-8");
+//                String text = new String(toPrint, Charset.forName(encoding));
                 if (!sendDataByte(PrinterCommand.POS_Print_Text(rowsToPrint[i].toString(), encoding, codepage, widthTimes, heigthTimes, fonttype))) {
                     promise.reject("COMMAND_NOT_SEND");
                     return;
@@ -320,7 +321,7 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
         int leftPadding = 0;
         if(options!=null){
             width = options.hasKey("width") ? options.getInt("width") : 0;
-            leftPadding = options.hasKey("left") ? options.getInt("left") : 0;
+            leftPadding = options.hasKey("left")?options.getInt("left") : 0;
         }
 
         //cannot larger then devicesWith;
@@ -332,9 +333,15 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
         Bitmap mBitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
         int nMode = 0;
         if (mBitmap != null) {
-            
+            /**
+             * Parameters:
+             * mBitmap  要打印的图片
+             * nWidth   打印宽度（58和80）
+             * nMode    打印模式
+             * Returns: byte[]
+             */
             byte[] data = PrintPicture.POS_PrintBMP(mBitmap, width, nMode, leftPadding);
-            
+            //  SendDataByte(buffer);
             sendDataByte(Command.ESC_Init);
             sendDataByte(Command.LF);
             sendDataByte(data);
@@ -374,12 +381,12 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
             promise.reject("COMMAND_NOT_SEND");
         }
     }
-     
+
     @ReactMethod
-    public void printQRCode(String content, int size, int correctionLevel, int leftPadding, final Promise promise) {
+    public void printQRCode(String content, int size, int correctionLevel, final Promise promise) {
         try {
             Log.i(TAG, "生成的文本：" + content);
-            // 把输入的文本转为二维码 
+            // 把输入的文本转为二维码
             Hashtable<EncodeHintType, Object> hints = new Hashtable<EncodeHintType, Object>();
             hints.put(EncodeHintType.CHARACTER_SET, "utf-8");
             hints.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.forBits(correctionLevel));
@@ -387,9 +394,6 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
                     BarcodeFormat.QR_CODE, size, size, hints);
 
             int width = bitMatrix.getWidth();
-            if(width > deviceWidth || width == 0){
-                 width = deviceWidth;
-             }
             int height = bitMatrix.getHeight();
 
             System.out.println("w:" + width + "h:"
@@ -410,8 +414,9 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
                     Bitmap.Config.ARGB_8888);
 
             bitmap.setPixels(pixels, 0, width, 0, 0, width, height);
- 
-            byte[] data = PrintPicture.POS_PrintBMP(bitmap, size, 0, leftPadding);
+
+            //TODO: may need a left padding to align center.
+            byte[] data = PrintPicture.POS_PrintBMP(bitmap, size, 0, 0);
             if (sendDataByte(data)) {
                 promise.resolve(null);
             } else {
@@ -429,7 +434,29 @@ public class RNBluetoothEscposPrinterModule extends ReactContextBaseJavaModule
         sendDataByte(command);
     }
 
-   
+    @ReactMethod
+    public void openDrawer(int nMode, int nTime1, int nTime2) {
+        try{
+            byte[] command = PrinterCommand.POS_Set_Cashbox(nMode, nTime1, nTime2);
+            sendDataByte(command);
+
+         }catch (Exception e){
+            Log.d(TAG, e.getMessage());
+        }
+    }
+
+
+    @ReactMethod
+    public void cutOnePoint() {
+        try{
+            byte[] command = PrinterCommand.POS_Cut_One_Point();
+            sendDataByte(command);
+
+         }catch (Exception e){
+            Log.d(TAG, e.getMessage());
+        }
+    }    
+
     private boolean sendDataByte(byte[] data) {
         if (data==null || mService.getState() != BluetoothService.STATE_CONNECTED) {
             return false;
