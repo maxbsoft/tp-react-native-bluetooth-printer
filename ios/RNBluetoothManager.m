@@ -148,6 +148,20 @@ RCT_EXPORT_METHOD(scanDevices:(RCTPromiseResolveBlock)resolve
                 self.foundDevices = [[NSMutableDictionary alloc] init];
             }
             [self.foundDevices addEntriesFromDictionary:peripheralStored];
+            
+            NSArray<NSUUID *> *ids = [self.centralManager retrieveConnectedPeripheralsWithServices:nil];
+            NSLog(@"", ids);
+            NSArray<CBPeripheral *> *retrieveDevices = [self.centralManager retrievePeripheralsWithIdentifiers: ids];
+            
+            for(int i = 0; i < retrieveDevices.count; i++){
+                NSLog(@"retrieve connected found devies:%@, %@ =>%@",ids[i],retrieveDevices[i].identifier, retrieveDevices[i]);
+                NSString *name = retrieveDevices[i].name;
+                if(!name){
+                    name = @"";
+                }
+                [devices addObject:@{@"address":[retrieveDevices[i].identifier UUIDString],@"name":name}];
+            }
+
             if(hasListeners){
                 [self sendEventWithName:EVENT_DEVICE_FOUND body:@{@"device":idAndName}];
             }
@@ -229,6 +243,8 @@ RCT_EXPORT_METHOD(connect:(NSString *)address
             }
             [devices addObject:@{@"address":key,@"name":name}];
         }
+        
+        
         NSError *error = nil;
         NSData* jsonData = [NSJSONSerialization dataWithJSONObject:devices options:NSJSONWritingPrettyPrinted error:&error];
         NSString * jsonStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
