@@ -149,23 +149,23 @@ RCT_EXPORT_METHOD(scanDevices:(RCTPromiseResolveBlock)resolve
             }
             [self.foundDevices addEntriesFromDictionary:peripheralStored];
             
-            NSArray<NSUUID *> *ids = [self.centralManager retrieveConnectedPeripheralsWithServices:nil];
-            NSLog(@"", ids);
-            NSArray<CBPeripheral *> *retrieveDevices = [self.centralManager retrievePeripheralsWithIdentifiers: ids];
-            
-            for(int i = 0; i < retrieveDevices.count; i++){
-                NSLog(@"retrieve connected found devies:%@, %@ =>%@",ids[i],retrieveDevices[i].identifier, retrieveDevices[i]);
-                NSString *name = retrieveDevices[i].name;
-                if(!name){
-                    name = @"";
-                }
-                [devices addObject:@{@"address":[retrieveDevices[i].identifier UUIDString],@"name":name}];
-            }
+    
 
             if(hasListeners){
                 [self sendEventWithName:EVENT_DEVICE_FOUND body:@{@"device":idAndName}];
             }
         }
+        
+        NSArray<NSUUID *> *ids = [self.centralManager retrieveConnectedPeripheralsWithServices:supportServices];
+        NSLog(@"", ids);
+        NSArray<CBPeripheral *> *retrieveDevices = [self.centralManager retrievePeripheralsWithIdentifiers: ids];
+        
+        for(int i = 0; i < retrieveDevices.count; i++){
+            NSLog(@"retrieve connected found devies:%@, %@ =>%@",ids[i],retrieveDevices[i].identifier, retrieveDevices[i]);
+            NSDictionary *retrievePeripheralStored = @{retrieveDevices[i].identifier.UUIDString:retrieveDevices[i]};
+            [self.foundDevices addEntriesFromDictionary:retrievePeripheralStored];
+        }
+        
         [self.centralManager scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey:@NO}];
         //Callbacks:
         //centralManager:didDiscoverPeripheral:advertisementData:RSSI:
