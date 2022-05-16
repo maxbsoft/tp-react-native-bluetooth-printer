@@ -162,7 +162,7 @@ RCT_EXPORT_METHOD(printSelfTest:(NSInteger *)param
 {
     if(RNBluetoothManager.isConnected){
         NSMutableData *data = [[NSMutableData alloc] init];
-        Byte rotateBytes[] = {(int)rotate};
+        Byte rotateBytes[] = {(int)param};
         // 0x1F, 0x11, 0x04
         [data appendBytes:0x1F length:1];
         [data appendBytes:0x11 length:1];
@@ -187,9 +187,9 @@ RCT_EXPORT_METHOD(printHex:(NSString *)hex
         // [data appendBytes:0x04 length:1];
         
         int idx;
-        for (idx = 0; idx+2 <= self.length; idx+=2) {
+        for (idx = 0; idx+2 <= hex.length; idx+=2) {
             NSRange range = NSMakeRange(idx, 2);
-            NSString* hexStr = [self substringWithRange:range];
+            NSString* hexStr = [hex substringWithRange:range];
             NSScanner* scanner = [NSScanner scannerWithString:hexStr];
             unsigned int intValue;
             [scanner scanHexInt:&intValue];
