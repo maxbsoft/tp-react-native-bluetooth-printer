@@ -148,24 +148,23 @@ RCT_EXPORT_METHOD(scanDevices:(RCTPromiseResolveBlock)resolve
                 self.foundDevices = [[NSMutableDictionary alloc] init];
             }
             [self.foundDevices addEntriesFromDictionary:peripheralStored];
-            
-    
+
 
             if(hasListeners){
                 [self sendEventWithName:EVENT_DEVICE_FOUND body:@{@"device":idAndName}];
             }
         }
-        
+
         NSArray<NSUUID *> *ids = [self.centralManager retrieveConnectedPeripheralsWithServices:supportServices];
         NSLog(@"", ids);
         NSArray<CBPeripheral *> *retrieveDevices = [self.centralManager retrievePeripheralsWithIdentifiers: ids];
-        
+
         for(int i = 0; i < retrieveDevices.count; i++){
             NSLog(@"retrieve connected found devies:%@, %@ =>%@",ids[i],retrieveDevices[i].identifier, retrieveDevices[i]);
             NSDictionary *retrievePeripheralStored = @{retrieveDevices[i].identifier.UUIDString:retrieveDevices[i]};
             [self.foundDevices addEntriesFromDictionary:retrievePeripheralStored];
         }
-        
+
         [self.centralManager scanForPeripheralsWithServices:nil options:@{CBCentralManagerScanOptionAllowDuplicatesKey:@NO}];
         //Callbacks:
         //centralManager:didDiscoverPeripheral:advertisementData:RSSI:
@@ -174,7 +173,7 @@ RCT_EXPORT_METHOD(scanDevices:(RCTPromiseResolveBlock)resolve
             [timer invalidate];
             timer = nil;
         }
-        timer = [NSTimer scheduledTimerWithTimeInterval:10 target:self selector:@selector(callStop) userInfo:nil repeats:NO];
+        timer = [NSTimer scheduledTimerWithTimeInterval:3 target:self selector:@selector(callStop) userInfo:nil repeats:NO];
 
     }
     @catch(NSException *exception){
@@ -243,8 +242,8 @@ RCT_EXPORT_METHOD(connect:(NSString *)address
             }
             [devices addObject:@{@"address":key,@"name":name}];
         }
-        
-        
+
+
         NSError *error = nil;
         NSData* jsonData = [NSJSONSerialization dataWithJSONObject:devices options:NSJSONWritingPrettyPrinted error:&error];
         NSString * jsonStr = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];

@@ -164,9 +164,12 @@ RCT_EXPORT_METHOD(printSelfTest:(NSInteger *)param
         NSMutableData *data = [[NSMutableData alloc] init];
         Byte rotateBytes[] = {(int)param};
         // 0x1F, 0x11, 0x04
-        [data appendBytes:0x1F length:1];
-        [data appendBytes:0x11 length:1];
-        [data appendBytes:0x04 length:1];
+        Byte command1[] = {0x1F};
+        [data appendBytes:command1 length:1];
+        Byte command2[] = {0x11};
+        [data appendBytes:command2 length:1];
+        Byte command3[] = {0x04};
+        [data appendBytes:command3 length:1];
         pendingReject = reject;
         pendingResolve = resolve;
         [RNBluetoothManager writeValue:data withDelegate:self];
