@@ -157,6 +157,54 @@ RCT_EXPORT_METHOD(printerUnderLine:(int)sp withResolver:(RCTPromiseResolveBlock)
     
 }
 
+RCT_EXPORT_METHOD(printSelfTest:(NSInteger *)param
+                  withResolver:(RCTPromiseResolveBlock) resolve rejecter:(RCTPromiseRejectBlock) reject)
+{
+    if(RNBluetoothManager.isConnected){
+        NSMutableData *data = [[NSMutableData alloc] init];
+        Byte rotateBytes[] = {(int)rotate};
+        // 0x1F, 0x11, 0x04
+        [data appendBytes:0x1F length:1];
+        [data appendBytes:0x11 length:1];
+        [data appendBytes:0x04 length:1];
+        pendingReject = reject;
+        pendingResolve = resolve;
+        [RNBluetoothManager writeValue:data withDelegate:self];
+    }else{
+           reject(@"COMMAND_NOT_SEND",@"COMMAND_NOT_SEND",nil);
+    }
+}
+
+RCT_EXPORT_METHOD(printHex:(NSString *)hex
+                  withResolver:(RCTPromiseResolveBlock) resolve rejecter:(RCTPromiseRejectBlock) reject)
+{
+    if(RNBluetoothManager.isConnected){
+        NSMutableData *data = [[NSMutableData alloc] init];
+       
+        // 0x1F, 0x11, 0x04
+        // [data appendBytes:0x1F length:1];
+        // [data appendBytes:0x11 length:1];
+        // [data appendBytes:0x04 length:1];
+        
+        int idx;
+        for (idx = 0; idx+2 <= self.length; idx+=2) {
+            NSRange range = NSMakeRange(idx, 2);
+            NSString* hexStr = [self substringWithRange:range];
+            NSScanner* scanner = [NSScanner scannerWithString:hexStr];
+            unsigned int intValue;
+            [scanner scanHexInt:&intValue];
+            [data appendBytes:&intValue length:1];
+        }
+        
+        
+        pendingReject = reject;
+        pendingResolve = resolve;
+        [RNBluetoothManager writeValue:data withDelegate:self];
+    }else{
+           reject(@"COMMAND_NOT_SEND",@"COMMAND_NOT_SEND",nil);
+    }
+}
+
 RCT_EXPORT_METHOD(printText:(NSString *) text withOptions:(NSDictionary *) options
                   resolver:(RCTPromiseResolveBlock) resolve rejecter:(RCTPromiseRejectBlock) reject)
 {NSLog(@"printing text...with options: %@",options);
